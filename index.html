@@ -1,562 +1,506 @@
+```html
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國一生物 🌿 動物與生命科學互動學習卡</title>
+    <title>國中生物｜段考一頁式總複習</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            svg: {
-                fontCache: 'global'
-            }
-        };
+        tailwind.config = {
+            darkMode: 'class',
+        }
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f0fdf4; /* Light green botanical theme */
+            overflow-x: hidden;
+            background-color: #0f172a;
+            color: #f8fafc;
         }
-        /* 3D Flip Card Effect - 加上 !important 防止被框架覆蓋 */
-        .perspective-1000 {
-            perspective: 1000px !important;
+
+        /* ======= 液態背景動畫 (固定在底層) ======= */
+        .liquid-blob {
+            position: fixed;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: morph 12s ease-in-out infinite, float 15s ease-in-out infinite;
         }
-        .preserve-3d {
-            transform-style: preserve-3d !important;
+        
+        @keyframes morph {
+            0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
         }
-        .backface-hidden {
-            backface-visibility: hidden !important;
-            -webkit-backface-visibility: hidden !important;
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-40px) scale(1.05); }
         }
-        /* Hide scrollbars for aesthetic custom lists */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #064e3b; }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: #1e3a8a; animation-delay: -3s; }
+        .blob-3 { top: 30%; left: 30%; width: 40vw; height: 40vw; background: #4c1d95; animation-delay: -5s; }
+
+        /* ======= 液態玻璃卡片 ======= */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        .glass-card:hover {
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 41, 59, 0.85);
+            transform: translateY(-5px);
+        }
+
+        /* 導航列玻璃效果 */
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 螢光筆畫重點 */
+        .highlight-green {
+            background: linear-gradient(180deg, transparent 60%, rgba(16, 185, 129, 0.6) 40%);
+            font-weight: 900;
+        }
+        .highlight-blue {
+            background: linear-gradient(180deg, transparent 60%, rgba(59, 130, 246, 0.6) 40%);
+            font-weight: 900;
+        }
+        .highlight-purple {
+            background: linear-gradient(180deg, transparent 60%, rgba(168, 85, 247, 0.6) 40%);
+            font-weight: 900;
+        }
+
+        /* ======= 翻轉式卡片 (3D Flip Card) 核心修正 ======= */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 100px; /* 固定 height 避免排版跳動 (Layout Shift) */
+            perspective: 1000px;
+            margin-top: 1rem;
+            cursor: pointer;
+            display: block;
+            box-sizing: border-box;
+            /* 建立獨立渲染層，防止 hover 時影響外部 document flow */
+            transform: translateZ(0); 
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d; /* 維持 3D 空間 */
+            transform-origin: center center;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute; /* 強制絕對定位 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0; /* 清除任何可能造成跳動的 margin */
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-weight: bold;
+            box-sizing: border-box;
+            /* 強制硬體加速，防止與 filter 衝突造成的跳動 */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .flip-card-back {
+            /* 加上微小 translateZ 避免 Z-fighting 破圖 */
+            transform: rotateY(180deg) translateZ(1px);
+        }
+
+        /* ======= 修正翻轉時圖片與文字的鏡像/方向錯誤 ======= */
+        .flip-card-back > div {
+            /* 強制建立 3D 層，修正因濾鏡引發的文字方向鏡像錯誤 */
+            transform: translateZ(1px);
+        }
+
+        .flip-card-back img {
+            /* 針對圖片強制反轉，修正背面觀看時的鏡像問題 */
+            transform: rotateY(180deg);
+            display: block;
+        }
+
+        /* ======= 液態玻璃 (Liquid Glass) 特效 ======= */
+        .liquid-glass {
+            position: relative;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1;
+            box-sizing: border-box;
+        }
+
+        .liquid-glass::before {
+            content: '';
+            position: absolute;
+            /* 避免偽元素溢出引發 hover box 改變，造成 layout shift */
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            background: inherit;
+            filter: url('#liquid-glass-filter');
+            z-index: -1;
+            opacity: 0.8;
+            pointer-events: none;
+            transform: translateZ(-1px); /* 推到後方避免干擾內容點擊與 3D 渲染 */
+        }
+
+        .liquid-glass::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between text-gray-800">
+<body class="antialiased selection:bg-emerald-500 selection:text-white">
 
-    <header class="bg-white border-b border-green-100 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-green-500 text-white p-2 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fa-solid fa-leaf text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-gray-900 leading-tight">國一生物學習卡</h1>
-                    <p class="text-xs text-green-600 font-semibold">Animal & Biology Flashcards</p>
-                </div>
+    <!-- 液態玻璃扭曲濾鏡定義 -->
+    <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="liquid-glass-filter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- 液態背景 -->
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+
+    <!-- 頂部導航列 (點擊平滑滾動) -->
+    <nav class="nav-glass fixed top-0 w-full z-50 transition-all">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <a href="#" class="flex items-center gap-2 font-black text-xl text-emerald-400">
+                <span class="text-2xl">🧬</span> 生物段考複習
+            </a>
+            <div class="flex items-center gap-2 sm:gap-6 text-sm font-bold overflow-x-auto whitespace-nowrap pb-1 sm:pb-0 scrollbar-hide">
+                <a href="#ch3" class="text-slate-300 hover:text-emerald-400 transition px-2 py-1">3-5 動物界</a>
+                <a href="#ch4" class="text-slate-300 hover:text-blue-400 transition px-2 py-1">CH4 生態系</a>
+                <a href="#ch5" class="text-slate-300 hover:text-purple-400 transition px-2 py-1">CH5 生物多樣性</a>
             </div>
-            <div class="flex items-center space-x-3">
-                <div class="text-right">
-                    <p class="text-xs text-gray-400">總掌握進度</p>
-                    <p class="text-sm font-bold text-green-600" id="mastery-percent">0%</p>
-                </div>
-                <div class="relative w-10 h-10 flex items-center justify-center">
-                    <svg class="w-full h-full transform -rotate-90">
-                        <circle cx="20" cy="20" r="16" stroke="#e5e7eb" stroke-width="4" fill="transparent" />
-                        <circle id="progress-circle" cx="20" cy="20" r="16" stroke="#22c55e" stroke-width="4" fill="transparent" 
-                                stroke-dasharray="100.53" stroke-dashoffset="100.53" stroke-linecap="round" class="transition-all duration-500" />
-                    </svg>
-                    <span class="absolute text-[10px] font-bold text-gray-600" id="mastery-count">0/7</span>
-                </div>
-            </div>
+        </div>
+    </nav>
+
+    <!-- Hero 首圖區 -->
+    <header class="pt-32 pb-16 px-4 text-center relative z-10">
+        <span class="inline-block bg-red-500/20 border border-red-500/50 text-red-400 font-black px-4 py-1.5 rounded-full text-sm mb-6 animate-pulse">
+            國中生物段考必備
+        </span>
+        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight">一頁式神級資訊圖卡</h1>
+        <p class="text-slate-400 text-lg md:text-xl font-bold max-w-2xl mx-auto leading-relaxed">
+            不用一直換頁！所有考試重點、分類表格與講義圖表，只要<span class="text-emerald-400">往下滑</span>就能一次複習完畢。
+        </p>
+        <div class="mt-10 animate-bounce text-slate-500 text-2xl">
+            <i class="fa-solid fa-chevron-down">↓</i>
         </div>
     </header>
 
-    <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-grow flex flex-col md:flex-row gap-6">
-        
-        <section class="w-full md:w-1/3 flex flex-col gap-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-green-50">
-                <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-green-500"></i> 主題分類篩選
-                </h3>
-                <div class="flex flex-wrap gap-2" id="filter-buttons">
-                    <button onclick="filterCategory('all')" id="btn-all" class="px-3 py-1.5 rounded-xl text-sm font-medium transition bg-green-500 text-white shadow-sm">
-                        全部 (<span id="count-all">0</span>)
-                    </button>
-                    <button onclick="filterCategory('life')" id="btn-life" class="px-3 py-1.5 rounded-xl text-sm font-medium transition bg-gray-100 text-gray-600 hover:bg-gray-200">
-                        恆溫 (<span id="count-life">0</span>)
-                    </button>
-                    <button onclick="filterCategory('evolution')" id="btn-evolution" class="px-3 py-1.5 rounded-xl text-sm font-medium transition bg-gray-100 text-gray-600 hover:bg-gray-200">
-                        演化 (<span id="count-evolution">0</span>)
-                    </button>
-                    <button onclick="filterCategory('cell')" id="btn-cell" class="px-3 py-1.5 rounded-xl text-sm font-medium transition bg-gray-100 text-gray-600 hover:bg-gray-200">
-                        細胞 (<span id="count-cell">0</span>)
-                    </button>
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 pb-24 relative z-10 space-y-32">
+
+        <!-- ========================================== -->
+        <!-- 第 3 章：動物界 -->
+        <!-- ========================================== -->
+        <section id="ch3" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="bg-emerald-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shadow-emerald-500/30">3</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white">動物界的分類</h2>
+            </div>
+
+            <!-- 動態講義圖片框 -->
+            <div class="glass-card rounded-[2rem] p-4 sm:p-8 mb-8">
+                <div class="mb-4">
+                    <h3 class="text-xl font-black text-emerald-400">📌 動物界重點整理圖表</h3>
+                </div>
+                <div class="w-full rounded-2xl overflow-hidden border border-slate-600 bg-white">
+                    <img src="170.png" alt="動物界重點整理" class="w-full h-auto object-contain" onerror="this.src='https://images.unsplash.com/photo-1546026423-cc4642628d2b?auto=format&fit=crop&w=1200&q=80'">
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex-grow flex flex-col max-h-[300px] md:max-h-[420px]">
-                <h3 class="font-bold text-gray-700 mb-3 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-list-ol text-green-500"></i> 卡片清單</span>
-                    <button onclick="shuffleCards()" class="text-xs text-green-600 hover:text-green-700 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-shuffle"></i> 隨機打亂
-                    </button>
-                </h3>
-                <div class="overflow-y-auto no-scrollbar flex-grow space-y-2" id="card-list-container">
-                    </div>
-            </div>
-        </section>
-
-        <section class="w-full md:w-2/3 flex flex-col justify-between min-h-[400px] md:min-h-[500px]">
-            
-            <div class="flex items-center justify-between px-2 mb-2 text-sm text-gray-500">
-                <span id="current-card-category" class="bg-green-100 text-green-800 font-bold px-2.5 py-0.5 rounded-full text-xs">分類名稱</span>
-                <span>目前卡片：<strong id="card-index-indicator" class="text-gray-800">1 / 7</strong></span>
-            </div>
-
-            <div class="perspective-1000 w-full flex-grow cursor-pointer" onclick="toggleFlip()">
-                <div id="flashcard" class="preserve-3d w-full h-full min-h-[320px] relative transition-transform duration-500 ease-out" style="transform: rotateY(0deg);">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card rounded-3xl p-6 md:p-8">
+                    <div class="text-4xl mb-4">🪼</div>
+                    <h3 class="text-2xl font-black text-white mb-4">無脊椎動物家族</h3>
+                    <ul class="space-y-3 text-slate-300 font-bold leading-relaxed">
+                        <li>• <span class="highlight-green text-white">刺絲胞動物：</span>水母、珊瑚 (具刺絲胞與囊狀消化腔)</li>
+                        <li>• <span class="highlight-green text-white">扁形動物：</span>渦蟲、吸蟲 (身體扁平無體腔)</li>
+                        <li>• <span class="highlight-green text-white">軟體動物：</span>蝸牛、蛤蜊、章魚 (身體柔軟，多有外殼)</li>
+                        <li>• <span class="highlight-green text-white">環節動物：</span>蚯蚓、水蛭 (身體分節似環)</li>
+                        <li>• <span class="highlight-green text-white">節肢動物：</span>昆蟲、蝦蟹 (種類最多，具外骨骼需蛻皮)</li>
+                        <li>• <span class="highlight-green text-white">棘皮動物：</span>海星、海膽 (全產於海洋，具管足)</li>
+                    </ul>
                     
-                    <div class="backface-hidden absolute inset-0 bg-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-green-100 flex flex-col justify-between hover:shadow-lg transition">
-                        <div class="flex justify-between items-center text-gray-400">
-                            <span class="text-xs tracking-wider font-semibold uppercase text-green-500">QUESTION ・ 觀念探討</span>
-                            <span id="card-front-status-icon">
-                                <i class="fa-regular fa-circle-question text-xl text-green-400"></i>
-                            </span>
-                        </div>
-                        
-                        <div class="my-auto text-center py-4">
-                            <div id="card-front-emoji" class="text-5xl mb-4">🌿</div>
-                            <h2 id="card-front-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed px-4">
-                                載入中...
-                            </h2>
-                        </div>
-
-                        <div class="text-center text-xs text-gray-400 font-semibold flex items-center justify-center gap-2">
-                            <span>點擊卡片或按空白鍵翻看答案</span>
-                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                        </div>
-                    </div>
-
-                    <div class="backface-hidden absolute inset-0 bg-gradient-to-br from-green-50 to-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-green-300 flex flex-col justify-between hover:shadow-lg transition overflow-y-auto no-scrollbar" style="transform: rotateY(180deg);">
-                        <div class="flex justify-between items-center text-gray-400">
-                            <span class="text-xs tracking-wider font-semibold uppercase text-green-600">ANSWER ・ 核心觀念</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded font-bold">已解鎖答案</span>
-                        </div>
-                        
-                        <div class="my-auto py-4">
-                            <div id="card-back-text" class="text-base md:text-lg text-gray-700 leading-relaxed">
-                                </div>
-                        </div>
-
-                        <div class="bg-white p-3 rounded-2xl border border-green-100 shadow-sm" onclick="event.stopPropagation()">
-                            <p class="text-xs text-center text-gray-500 font-semibold mb-2">這題你的掌握度如何？</p>
-                            <div class="grid grid-cols-3 gap-2">
-                                <button onclick="setMasteryState('weak')" class="py-2 text-xs font-semibold rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition flex flex-col items-center gap-1">
-                                    <i class="fa-regular fa-face-frown text-sm"></i>不熟
-                                </button>
-                                <button onclick="setMasteryState('medium')" class="py-2 text-xs font-semibold rounded-xl border border-yellow-200 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 transition flex flex-col items-center gap-1">
-                                    <i class="fa-regular fa-face-meh text-sm"></i>稍微懂
-                                </button>
-                                <button onclick="setMasteryState('mastered')" class="py-2 text-xs font-semibold rounded-xl border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 transition flex flex-col items-center gap-1">
-                                    <i class="fa-regular fa-face-smile text-sm"></i>已掌握
-                                </button>
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div><span class="text-yellow-400">Q:</span> 種類最多的動物門？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div><span class="text-emerald-400">A:</span> 節肢動物門</div>
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 md:p-8">
+                    <div class="text-4xl mb-4">🦴</div>
+                    <h3 class="text-2xl font-black text-white mb-4">脊索動物門</h3>
+                    <ul class="space-y-3 text-slate-300 font-bold leading-relaxed">
+                        <li>• <span class="highlight-green text-white">魚類：</span>分為軟骨魚(鯊魚)與硬骨魚，用鰓呼吸。</li>
+                        <li>• <span class="highlight-green text-white">兩生類：</span>青蛙、山椒魚。幼體用鰓，成體用肺與皮膚輔助。</li>
+                        <li>• <span class="highlight-green text-white">爬蟲類：</span>蛇、龜。體表有鱗片/骨板，生有殼卵。</li>
+                        <li>• <span class="highlight-green text-white">鳥類：</span>前肢特化為翅膀，恆溫動物。</li>
+                        <li>• <span class="highlight-green text-white">哺乳類：</span>貓狗、人類、鴨嘴獸。具乳腺與毛髮，恆溫動物。</li>
+                    </ul>
 
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div><span class="text-yellow-400">Q:</span> 兩生類成體用何者呼吸？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div><span class="text-emerald-400">A:</span> 肺與皮膚</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 第 4 章：生態系 -->
+        <!-- ========================================== -->
+        <section id="ch4" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="bg-blue-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shadow-blue-500/30">4</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white">生態系與環境</h2>
+            </div>
+
+            <!-- 課本講義圖 166.jpg -->
+            <div class="glass-card rounded-[2rem] p-4 sm:p-8 mb-8">
+                <div class="mb-4">
+                    <h3 class="text-xl font-black text-blue-400">📌 CH4 重點整理講義</h3>
+                </div>
+                <div class="w-full rounded-2xl overflow-hidden border border-slate-600 bg-white">
+                    <img src="166.jpg" alt="生態系重點整理" class="w-full h-auto object-contain" onerror="this.src='https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80'">
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mt-6 gap-3">
-                <button onclick="prevCard()" class="flex-1 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 py-3.5 px-4 rounded-2xl shadow-sm font-bold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button onclick="toggleFlip()" class="bg-green-100 hover:bg-green-200 text-green-800 p-3.5 rounded-2xl shadow-sm transition flex items-center justify-center gap-2 aspect-square" title="翻轉卡片">
-                    <i class="fa-solid fa-arrows-rotate text-lg"></i>
-                </button>
-                <button onclick="nextCard()" class="flex-grow-[2] bg-green-500 hover:bg-green-600 text-white py-3.5 px-6 rounded-2xl shadow-md font-bold transition flex items-center justify-center gap-2">
-                    下一張 <i class="fa-solid fa-chevron-right"></i>
-                </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 4-1 -->
+                <div class="glass-card rounded-3xl p-6">
+                    <span class="text-blue-400 font-black text-sm block mb-2 border-b border-blue-500/30 pb-2">4-1 組成層次</span>
+                    <h3 class="text-xl font-black text-white mb-2">個體 → 族群 → 群集</h3>
+                    <p class="text-slate-400 text-sm font-bold leading-relaxed">
+                        <span class="highlight-blue text-white">族群</span>：同地區同物種。<br>
+                        <span class="highlight-blue text-white">群集</span>：同地區所有族群。<br>
+                        <span class="highlight-blue text-white">負荷量</span>：環境能供養的最大數量。
+                    </p>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div class="text-sm"><span class="text-yellow-400">Q:</span> 同地區所有族群合稱？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div class="text-sm"><span class="text-blue-400">A:</span> 群集</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4-2 -->
+                <div class="glass-card rounded-3xl p-6">
+                    <span class="text-blue-400 font-black text-sm block mb-2 border-b border-blue-500/30 pb-2">4-2 互動關係</span>
+                    <h3 class="text-xl font-black text-white mb-2">生存的角力戰</h3>
+                    <p class="text-slate-400 text-sm font-bold leading-relaxed">
+                        • <span class="highlight-blue text-white">競爭：</span>雙方受害。<br>
+                        • <span class="highlight-blue text-white">寄生/掠食：</span>一方得利一方受害。<br>
+                        • <span class="highlight-blue text-white">互利共生：</span>雙方皆得利。
+                    </p>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div class="text-sm"><span class="text-yellow-400">Q:</span> 蜜蜂採蜜屬於何種關係？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div class="text-sm"><span class="text-blue-400">A:</span> 互利共生</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4-3 -->
+                <div class="glass-card rounded-3xl p-6">
+                    <span class="text-blue-400 font-black text-sm block mb-2 border-b border-blue-500/30 pb-2">4-3 能量流動</span>
+                    <h3 class="text-xl font-black text-white mb-2">能量塔 1/10 定律</h3>
+                    <p class="text-slate-400 text-sm font-bold leading-relaxed">
+                        生產者 → 消費者。能量傳遞過程中會以熱能散失，約只有 <span class="highlight-blue text-white">10%</span> 的能量能傳遞到下一階層。
+                    </p>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div class="text-sm"><span class="text-yellow-400">Q:</span> 能量傳遞的比例約為？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div class="text-sm"><span class="text-blue-400">A:</span> 10%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4-4 -->
+                <div class="glass-card rounded-3xl p-6">
+                    <span class="text-blue-400 font-black text-sm block mb-2 border-b border-blue-500/30 pb-2">4-4 生態系類型</span>
+                    <h3 class="text-xl font-black text-white mb-2">水域與陸域</h3>
+                    <p class="text-slate-400 text-sm font-bold leading-relaxed">
+                        • <span class="highlight-blue text-white">陸域：</span>依雨量分為森林、草原、沙漠(日夜溫差大)。<br>
+                        • <span class="highlight-blue text-white">水域：</span>淡水、河口、海洋。
+                    </p>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div class="text-sm"><span class="text-yellow-400">Q:</span> 降雨量最少的生態系？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div class="text-sm"><span class="text-blue-400">A:</span> 沙漠</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 第 5 章：生物多樣性 -->
+        <!-- ========================================== -->
+        <section id="ch5" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="bg-purple-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shadow-purple-500/30">5</div>
+                <h2 class="text-3xl md:text-4xl font-black text-white">生物多樣性與保育</h2>
             </div>
 
+            <!-- 課本講義圖 168.jpg -->
+            <div class="glass-card rounded-[2rem] p-4 sm:p-8 mb-8">
+                <div class="mb-4">
+                    <h3 class="text-xl font-black text-purple-400">📌 CH5 重點整理講義</h3>
+                </div>
+                <div class="w-full rounded-2xl overflow-hidden border border-slate-600 bg-white">
+                    <img src="168.jpg" alt="生物多樣性重點整理" class="w-full h-auto object-contain" onerror="this.src='https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&w=1200&q=80'">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 5-1 -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 border-t-4 border-t-purple-500">
+                    <h3 class="text-2xl font-black text-white mb-4">5-1 三大層次</h3>
+                    <ul class="space-y-3 text-slate-300 font-bold leading-relaxed">
+                        <li>1. <span class="highlight-purple text-white">遺傳多樣性：</span>同種生物基因不同 (表現不同特徵)。</li>
+                        <li>2. <span class="highlight-purple text-white">物種多樣性：</span>一個地區內生物種類多寡。</li>
+                        <li>3. <span class="highlight-purple text-white">生態系多樣性：</span>大區域內環境的豐富度。</li>
+                    </ul>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div><span class="text-yellow-400">Q:</span> 基因不同屬於何種多樣性？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div><span class="text-purple-400">A:</span> 遺傳多樣性</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 5-2 -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 border-t-4 border-t-purple-500">
+                    <h3 class="text-2xl font-black text-white mb-4">5-2 面臨危機</h3>
+                    <ul class="space-y-3 text-slate-300 font-bold leading-relaxed">
+                        <li>• <span class="highlight-purple text-white">棲地破壞：</span>最大的威脅。</li>
+                        <li>• <span class="highlight-purple text-white">外來種入侵：</span>缺乏天敵，破壞平衡。</li>
+                        <li>• <span class="highlight-purple text-white">生物放大作用：</span>毒物難以排出，沿食物鏈累積，<span class="text-red-400">高級消費者體內濃度最高</span>。</li>
+                    </ul>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div><span class="text-yellow-400">Q:</span> 生物多樣性面臨的最大威脅？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div><span class="text-purple-400">A:</span> 棲地破壞</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 5-3 -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 border-t-4 border-t-purple-500">
+                    <h3 class="text-2xl font-black text-white mb-4">5-3 保育落實</h3>
+                    <ul class="space-y-3 text-slate-300 font-bold leading-relaxed">
+                        <li>🌍 <span class="highlight-purple text-white">拉姆薩公約：</span>保護全球濕地。</li>
+                        <li>🌍 <span class="highlight-purple text-white">華盛頓公約：</span>管制瀕危動植物貿易。</li>
+                        <li>♻️ <span class="highlight-purple text-white">5R 環保：</span>減量、拒絕、重複使用、回收、再生。</li>
+                    </ul>
+
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front liquid-glass">
+                                <div><span class="text-yellow-400">Q:</span> 保護全球濕地的公約？</div>
+                            </div>
+                            <div class="flip-card-back liquid-glass">
+                                <div><span class="text-purple-400">A:</span> 拉姆薩公約</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
     </main>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+    <!-- 頁腳 -->
+    <footer class="nav-glass py-8 relative z-10 text-center border-t border-slate-800">
+        <div class="max-w-5xl mx-auto px-4">
+            <h2 class="text-2xl font-black text-white mb-2">祝你段考順利！💯</h2>
+            <p class="text-slate-500 font-bold text-sm">一頁式國中生物總複習網頁 🚀 準備上傳至 GitHub Pages</p>
+        </div>
+    </footer>
 
-    <script>
-        const CARDS_DATABASE = [
-            {
-                id: 1,
-                category: "life",
-                categoryName: "生命與恆溫",
-                emoji: "🐸",
-                front: "什麼是「恆溫動物」與「外溫動物」？主要的差別在哪裡？蛇、青蛙跟麻雀分別屬於哪一類？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600">
-                            <li><strong class="text-red-500">恆溫動物（溫血）</strong>：能維持體溫恆定。例如：<b>鳥類（麻雀）</b>、<b>哺乳類</b>。</li>
-                            <li><strong class="text-blue-500">外溫動物（冷血）</strong>：體溫隨環境起伏。例如：魚類、<b>兩棲類（青蛙）</b>、<b>爬蟲類（蛇）</b>。</li>
-                        </ul>
-                        <div class="bg-white p-2 rounded-xl text-xs text-gray-500 border border-gray-100 mt-2">
-                            ⚠️ <strong>特別注意：</strong>昆蟲與無脊椎動物也全部都是外溫動物喔！
-                        </div>
-                    </div>
-                `
-            },
-            {
-                id: 2,
-                category: "evolution",
-                categoryName: "分類與演化",
-                emoji: "🦆",
-                front: "哺乳動物都是胎生的嗎？「鴨嘴獸」與「針鼴」生蛋卻是哺乳類的原因是？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <p class="text-sm text-gray-600"><strong>答案：不是所有哺乳類都是胎生！</strong></p>
-                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600">
-                            <li>鴨嘴獸和針鼴是極少數<strong>生蛋（卵生）</strong>的哺乳動物。</li>
-                            <li>因為寶寶孵化後，母體會用<strong>乳汁（哺乳）</strong>來哺育幼獸，所以依然是哺乳類。</li>
-                        </ul>
-                    </div>
-                `
-            },
-            {
-                id: 3,
-                category: "evolution",
-                categoryName: "分類與演化",
-                emoji: "🦋",
-                front: "昆蟲的「完全變態」與「不完全變態」最大的差別在哪個時期？蝴蝶、蝗蟲各是哪一種？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <p class="text-sm text-gray-600">最大差別在於有沒有<strong>「蛹」</strong>的時期：</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600">
-                            <li><strong class="text-green-600">完全變態：</strong>經歷：卵 $\\rightarrow$ 幼蟲 $\\rightarrow$ <strong class="text-red-500">蛹</strong> $\\rightarrow$ 成蟲。例如：<b>蝴蝶</b>、蜜蜂。</li>
-                            <li><strong class="text-yellow-600">不完全變態：</strong>經歷：卵 $\\rightarrow$ 若蟲 $\\rightarrow$ 成蟲（<strong>沒有蛹期</strong>）。例如：<b>蝗蟲</b>、蟑螂。</li>
-                        </ul>
-                    </div>
-                `
-            },
-            {
-                id: 4,
-                category: "evolution",
-                categoryName: "分類與演化",
-                emoji: "🐙",
-                front: "脊椎動物與無脊椎動物是如何區分的？烏賊（花枝）、海星、水母有脊椎嗎？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600">
-                            <li><strong>區分關鍵：</strong>體內有沒有由脊椎骨相連而成的<strong>「脊椎」</strong>。</li>
-                            <li>烏賊、海星、水母、螃蟹，以上全都是無脊椎動物，沒有骨頭！</li>
-                        </ul>
-                    </div>
-                `
-            },
-            {
-                id: 5,
-                category: "cell",
-                categoryName: "細胞與構造",
-                emoji: "🔬",
-                front: "植物細胞和動物細胞在構造上有何異同？什麼構造是植物有而動物沒有的？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div class="bg-green-50 p-2 rounded-xl">
-                                <strong class="text-green-800">植物特有構造：</strong>
-                                <ul class="list-disc list-inside mt-1 space-y-1">
-                                    <li><b>細胞壁：</b>支持植物體。</li>
-                                    <li><b>葉綠體：</b>行光合作用。</li>
-                                </ul>
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded-xl">
-                                <strong class="text-gray-800">共同擁有：</strong>
-                                <ul class="list-disc list-inside mt-1 space-y-1">
-                                    <li><b>細胞膜：</b>控制物質進出。</li>
-                                    <li><b>細胞核：</b>生命中樞。</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                `
-            },
-            {
-                id: 6,
-                category: "life",
-                categoryName: "生命與恆溫",
-                emoji: "🌾",
-                front: "綠色植物行「光合作用」與「呼吸作用」的原料、產物、場所有何不同？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <div class="text-sm text-gray-600 space-y-2">
-                            <p>🍀 <strong>光合作用：</strong>在<b>葉綠體</b>進行。</p>
-                            <div class="bg-white p-2 rounded-lg border border-green-100 text-center font-mono text-xs text-green-800">
-                                $6CO_2 + 6H_2O \\xrightarrow{光能} C_6H_{12}O_6 + 6O_2$
-                            </div>
-                            <p>🔥 <strong>呼吸作用：</strong>在<b>粒線體</b>進行，分解有機物釋放能量。</p>
-                        </div>
-                    </div>
-                `
-            },
-            {
-                id: 7,
-                category: "cell",
-                categoryName: "細胞與構造",
-                emoji: "🌊",
-                front: "什麼是「單一開口的囊狀消化腔」？與我們人類的「管狀消化道」有何差異？",
-                back: `
-                    <div class="space-y-3">
-                        <p class="font-bold text-green-700 border-b border-green-200 pb-1">💡 關鍵概念解析：</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600">
-                            <li><strong>囊狀消化腔：</strong>只有單一開口，<b>「口即是肛門」</b>。例如：水母、海葵。</li>
-                            <li><strong>管狀消化道：</strong>具有「口」與「肛門」兩個分開的開口，食物單向運動。</li>
-                        </ul>
-                    </div>
-                `
-            }
-        ];
-
-        let cards = [...CARDS_DATABASE];
-        let currentIdx = 0;
-        let isFlipped = false;
-        let currentCategory = "all";
-        let masteryStates = {};
-        
-        cards.forEach(card => { masteryStates[card.id] = 'unread'; });
-
-        initApp();
-
-        function initApp() {
-            renderCardList();
-            updateCardDisplay();
-            updateMasteryProgress();
-            
-            document.addEventListener('keydown', function(e) {
-                if (e.code === 'Space') {
-                    e.preventDefault();
-                    toggleFlip();
-                } else if (e.code === 'ArrowRight') {
-                    nextCard();
-                } else if (e.code === 'ArrowLeft') {
-                    prevCard();
-                }
-            });
-            setupTouchGestures();
-        }
-
-        function renderCardList() {
-            const listContainer = document.getElementById('card-list-container');
-            if (!listContainer) return;
-            
-            listContainer.innerHTML = '';
-            const counts = { all: CARDS_DATABASE.length, life: 0, evolution: 0, cell: 0 };
-            CARDS_DATABASE.forEach(c => { counts[c.category]++; });
-            document.getElementById('count-all').innerText = counts.all;
-            document.getElementById('count-life').innerText = counts.life;
-            document.getElementById('count-evolution').innerText = counts.evolution;
-            document.getElementById('count-cell').innerText = counts.cell;
-
-            cards.forEach((card, index) => {
-                const isCurrent = index === currentIdx;
-                const mastery = masteryStates[card.id];
-                
-                let badgeColor = "bg-gray-100 text-gray-400";
-                let badgeText = "未讀";
-                if (mastery === 'weak') { badgeColor = "bg-red-100 text-red-600"; badgeText = "不熟"; }
-                if (mastery === 'medium') { badgeColor = "bg-yellow-100 text-yellow-700"; badgeText = "半懂"; }
-                if (mastery === 'mastered') { badgeColor = "bg-green-100 text-green-700"; badgeText = "熟練"; }
-
-                const listItem = document.createElement('button');
-                listItem.className = `w-full text-left p-3 rounded-xl transition flex items-center justify-between border ${isCurrent ? 'bg-green-50 border-green-300 shadow-sm' : 'bg-gray-50 border-transparent hover:bg-gray-100'}`;
-                listItem.onclick = () => jumpToCard(index);
-
-                listItem.innerHTML = `
-                    <div class="flex items-center space-x-3 overflow-hidden">
-                        <span class="text-xl flex-shrink-0">${card.emoji}</span>
-                        <span class="text-sm font-semibold truncate ${isCurrent ? 'text-green-800' : 'text-gray-700'}">${card.front.substring(0, 15)}...</span>
-                    </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${badgeColor}">${badgeText}</span>
-                `;
-                listContainer.appendChild(listItem);
-            });
-        }
-
-        function filterCategory(category) {
-            currentCategory = category;
-            const buttons = ['all', 'life', 'evolution', 'cell'];
-            buttons.forEach(btn => {
-                const el = document.getElementById(`btn-${btn}`);
-                if (el) {
-                    el.className = (btn === category) 
-                        ? "px-3 py-1.5 rounded-xl text-sm font-medium transition bg-green-500 text-white shadow-sm"
-                        : "px-3 py-1.5 rounded-xl text-sm font-medium transition bg-gray-100 text-gray-600 hover:bg-gray-200";
-                }
-            });
-
-            cards = (category === 'all') ? [...CARDS_DATABASE] : CARDS_DATABASE.filter(c => c.category === category);
-            currentIdx = 0;
-            isFlipped = false;
-            document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
-            
-            renderCardList();
-            updateCardDisplay();
-        }
-
-        function shuffleCards() {
-            for (let i = cards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [cards[i], cards[j]] = [cards[j], cards[i]];
-            }
-            currentIdx = 0;
-            isFlipped = false;
-            document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
-            renderCardList();
-            updateCardDisplay();
-            showToast("✨ 卡片已重新隨機分配！", "success");
-        }
-
-        // 絕對有效的翻牌機制！不再受制於 CSS 衝突
-        function toggleFlip() {
-            const cardEl = document.getElementById('flashcard');
-            isFlipped = !isFlipped;
-            if (isFlipped) {
-                cardEl.style.transform = 'rotateY(180deg)';
-            } else {
-                cardEl.style.transform = 'rotateY(0deg)';
-            }
-        }
-
-        function updateCardDisplay() {
-            if (cards.length === 0) return;
-            const card = cards[currentIdx];
-            
-            isFlipped = false;
-            document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
-
-            document.getElementById('current-card-category').innerText = card.categoryName;
-            document.getElementById('card-index-indicator').innerText = `${currentIdx + 1} / ${cards.length}`;
-            document.getElementById('card-front-emoji').innerText = card.emoji;
-            document.getElementById('card-front-text').innerText = card.front;
-            document.getElementById('card-back-text').innerHTML = card.back;
-
-            try {
-                if (window.MathJax && typeof window.MathJax.typeset === 'function') {
-                    window.MathJax.typeset();
-                }
-            } catch (err) {}
-
-            renderCardList();
-        }
-
-        function nextCard() {
-            if (cards.length <= 1) return;
-            currentIdx = (currentIdx + 1) % cards.length;
-            updateCardDisplay();
-        }
-
-        function prevCard() {
-            if (cards.length <= 1) return;
-            currentIdx = (currentIdx - 1 + cards.length) % cards.length;
-            updateCardDisplay();
-        }
-
-        function jumpToCard(index) {
-            currentIdx = index;
-            updateCardDisplay();
-        }
-
-        function setMasteryState(state) {
-            const card = cards[currentIdx];
-            masteryStates[card.id] = state;
-            
-            if (state === 'mastered') {
-                showToast("🎉 已標記為「已掌握」！", "success");
-            } else if (state === 'medium') {
-                showToast("👍 標記為「稍微懂」。", "info");
-            } else {
-                showToast("✍️ 已標記為「不熟」。", "warning");
-            }
-
-            updateMasteryProgress();
-            renderCardList();
-
-            setTimeout(() => {
-                if (currentIdx < cards.length - 1) {
-                    nextCard();
-                }
-            }, 800);
-        }
-
-        function updateMasteryProgress() {
-            const total = CARDS_DATABASE.length;
-            let masteredCount = 0;
-            CARDS_DATABASE.forEach(card => {
-                if (masteryStates[card.id] === 'mastered') masteredCount++;
-            });
-
-            const percent = Math.round((masteredCount / total) * 100);
-            document.getElementById('mastery-percent').innerText = `${percent}%`;
-            document.getElementById('mastery-count').innerText = `${masteredCount}/${total}`;
-
-            const offset = 100.53 - (percent / 100) * 100.53;
-            const progressCircle = document.getElementById('progress-circle');
-            if (progressCircle) progressCircle.setAttribute('stroke-dashoffset', offset);
-        }
-
-        function showToast(message, type = "success") {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const toast = document.createElement('div');
-            let bgClass = "bg-white border-green-500 text-gray-800";
-            let icon = '<i class="fa-solid fa-circle-check text-green-500 mr-2"></i>';
-            
-            if (type === "warning") {
-                bgClass = "bg-white border-red-400 text-gray-800";
-                icon = '<i class="fa-solid fa-circle-exclamation text-red-500 mr-2"></i>';
-            } else if (type === "info") {
-                bgClass = "bg-white border-yellow-400 text-gray-800";
-                icon = '<i class="fa-solid fa-circle-info text-yellow-500 mr-2"></i>';
-            }
-
-            toast.className = `flex items-center p-3 rounded-xl shadow-lg border-l-4 ${bgClass} transition-all duration-300 transform translate-y-4 opacity-0`;
-            toast.innerHTML = `${icon} <span class="text-sm font-semibold">${message}</span>`;
-            
-            container.appendChild(toast);
-
-            setTimeout(() => toast.classList.remove('translate-y-4', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('translate-y-4', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 2000);
-        }
-
-        function setupTouchGestures() {
-            const cardContainer = document.getElementById('flashcard');
-            if (!cardContainer) return;
-            let startX = 0;
-            let endX = 0;
-
-            cardContainer.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; }, { passive: true });
-            cardContainer.addEventListener('touchend', e => {
-                endX = e.changedTouches[0].screenX;
-                if (endX < startX - 50) nextCard();
-                else if (endX > startX + 50) prevCard();
-            }, { passive: true });
-        }
-    </script>
 </body>
 </html>
 
 
 ```
+
